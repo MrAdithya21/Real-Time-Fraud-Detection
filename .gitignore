@@ -1,0 +1,19 @@
+# Ignore Python cache & environment
+__pycache__/
+venv/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore logs & database files
+logs/
+*.log
+*.db
+
+# Ignore environment files
+.env
+
+# Ignore Spark & Kafka temporary files
+spark-warehouse/
+checkpoint/
+

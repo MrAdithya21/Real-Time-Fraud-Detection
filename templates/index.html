@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Fraud Detection</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; text-align: center; background-color: #f4f4f9; padding: 20px; }
+        #kpis { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); display: inline-block; }
+        th, td { padding: 12px; text-align: center; border: 1px solid #ddd; }
+        th { background-color: #3498db; color: white; }
+        canvas { max-width: 400px; margin: 20px auto; }
+        table { width: 80%; margin: 20px auto; border-collapse: collapse; background: white; }
+        button { margin: 10px; padding: 8px 15px; cursor: pointer; border: none; background-color: #3498db; color: white; border-radius: 5px; }
+        button:hover { background-color: #217dbb; }
+    </style>
+</head>
+<body>
+
+    <h1>Real-Time Fraud Detection Dashboard</h1>
+
+    <div id="kpis">
+        <h2>Key Performance Indicators</h2>
+        <p>Total Transactions: <span id="total_transactions">0</span></p>
+        <p>Total Fraudulent Transactions: <span id="total_fraudulent">0</span></p>
+        <p>Fraud Percentage: <span id="fraud_percentage">0%</span></p>
+        
+    </div>
+
+    <h2>Fraud Cases Percentage</h2>
+    <canvas id="fraudPieChart"></canvas>
+
+    <h2>Recent Fraud Transactions</h2>
+    <table id="fraud_transactions_table">
+        <thead>
+            <tr>
+                <th>Transaction ID</th>
+                <th>User ID</th>
+                <th>Amount</th>
+                <th>Location</th>
+                <th>Device</th>
+                <th>Timestamp</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <button id="prevPage">Previous</button>
+    <button id="nextPage">Next</button>
+
+    <script>
+        var currentPage = 1;
+
+        function fetchData() {
+            $.get('/fraud_statistics', function(data) {
+                $('#total_transactions').text(data.total_transactions);
+                $('#total_fraudulent').text(data.total_fraudulent);
+                $('#fraud_percentage').text(data.fraud_rate + '%');
+
+                // Update fraud locations
+                let locationList = $('#fraud_locations');
+                locationList.empty();
+                if (data.top_fraud_locations.length > 0) {
+                    data.top_fraud_locations.forEach(location => {
+                        locationList.append(`<li>${location.location}: ${location.count} cases</li>`);
+                    });
+                } else {
+                    locationList.append(`<li>No data available</li>`);
+                }
+
+                // Update pie chart
+                updateFraudPieChart(data.total_fraudulent, data.total_transactions - data.total_fraudulent);
+            });
+
+            // Fetch recent fraud transactions
+            $.get(`/latest_fraud_transactions?page=${currentPage}`, function(data) {
+                let tableBody = $('#fraud_transactions_table tbody');
+                tableBody.empty();
+                data.transactions.forEach(tx => {
+                    tableBody.append(`<tr>
+                        <td>${tx.transaction_id}</td>
+                        <td>${tx.user_id}</td>
+                        <td>$${tx.amount}</td>
+                        <td>${tx.location}</td>
+                        <td>${tx.device}</td>
+                        <td>${new Date(tx.timestamp).toLocaleString()}</td>
+                    </tr>`);
+                });
+            });
+        }
+
+        $('#prevPage').click(() => { 
+            if (currentPage > 1) {
+                currentPage--; 
+                fetchData(); 
+            }
+        });
+
+        $('#nextPage').click(() => { 
+            currentPage++; 
+            fetchData(); 
+        });
+
+        let fraudPieChart;
+        function updateFraudPieChart(fraudCases, normalCases) {
+    if (fraudPieChart) fraudPieChart.destroy(); // Destroy previous chart
+
+    let totalCases = fraudCases + normalCases;
+    let fraudPercentage = ((fraudCases / totalCases) * 100).toFixed(2);
+    let normalPercentage = ((normalCases / totalCases) * 100).toFixed(2);
+
+    let ctxPie = document.getElementById('fraudPieChart').getContext('2d');
+    fraudPieChart = new Chart(ctxPie, {
+        type: 'pie',
+        data: {
+            labels: [
+                `Fraudulent Transactions (${fraudPercentage}%)`,
+                `Normal Transactions (${normalPercentage}%)`
+            ],
+            datasets: [{
+                data: [fraudCases, normalCases],
+                backgroundColor: ['red', 'green']
+            }]
+        },
+        options: {
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function (tooltipItem) {
+                            let dataset = tooltipItem.dataset.data;
+                            let value = dataset[tooltipItem.dataIndex];
+                            let percentage = ((value / totalCases) * 100).toFixed(2);
+                            return `${value} transactions (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+
+        fetchData();
+        setInterval(fetchData, 5000);
+    </script>
+
+</body>
+</html>
