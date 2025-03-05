@@ -96,10 +96,14 @@ Open http://127.0.0.1:5000 in your browser.
 
 ## 🔥 Screenshots
 **Fraud Transactions Table:**  
-(Screenshot of fraud transactions table)
+<img width="1175" alt="Screenshot 2025-03-05 at 9 43 20 AM" src="https://github.com/user-attachments/assets/a609ab52-0852-4c32-b382-82ab0fb96c11" />
 
 **Total vs Fraud Transactions Pie Chart:**  
-(Screenshot of fraud pie chart)
+<img width="368" alt="Screenshot 2025-03-05 at 9 43 57 AM" src="https://github.com/user-attachments/assets/19f345e2-2dab-4bce-a1f0-5119ba98e9d3" />
+
+**MongoDB Database:**
+<img width="1512" alt="Screenshot 2025-03-05 at 9 47 23 AM" src="https://github.com/user-attachments/assets/30bd0121-5c94-4db8-86da-1b0c31d1761a" />
+
 
 ---
 
