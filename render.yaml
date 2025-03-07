@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: fraud-detection-api
+    runtime: python
+    envVars:
+      - key: MONGO_URI
+        value: "mongodb+srv://your_username:your_password@your-cluster.mongodb.net/"
+      - key: DB_NAME
+        value: "fraud_detection"
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn -w 4 -b 0.0.0.0:5000 app:app"
